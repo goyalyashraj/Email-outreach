@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<main class="bg-light p-3" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;">
+    <div>
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <h4 class="text-primary">Welcome, {{ user }} </h4>
+        </div>
+
+        
+
+        <!-- Dashboard Cards -->
+        <div class="row g-3">
+            <!-- Card 1 -->
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm border-0 rounded-4 text-center hover-card h-100">
+                    <i class="bi bi-people text-primary" style="font-size: 1.8rem;"></i>
+                    <h6 class="mt-2 text-dark fw-bold">Total Clients</h6>
+                    <p class="mb-0 text-dark fw-bold counter" data-target="{{ total_clients }}">0</p>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-primary" role="progressbar"
+                             style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm border-0 rounded-4 text-center hover-card h-100">
+                    <i class="bi bi-send text-success" style="font-size: 1.8rem;"></i>
+                    <h6 class="mt-2 text-dark fw-bold">Initial Mail Sent</h6>
+                    <p class="mb-0 text-dark fw-bold counter" data-target="{{ initial_mail_sent }}">0</p>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: {{ (initial_mail_sent / total_clients) * 100 if total_clients else 0 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm border-0 rounded-4 text-center hover-card h-100">
+                    <i class="bi bi-chat-dots text-warning" style="font-size: 1.8rem;"></i>
+                    <h6 class="mt-2 text-dark fw-bold">Replies Received</h6>
+                    <p class="mb-0 text-dark fw-bold counter" data-target="{{ received_mail }}">0</p>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-warning" role="progressbar"
+                             style="width: {{ (received_mail / total_clients) * 100 if total_clients else 0 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm border-0 rounded-4 text-center hover-card h-100">
+                    <i class="bi bi-graph-up-arrow text-danger" style="font-size: 1.8rem;"></i>
+                    <h6 class="mt-2 text-dark fw-bold">Conversion Rate</h6>
+                    <p class="mb-0 text-dark fw-bold">
+                        {{ ((received_mail / initial_mail_sent) * 100) | round(2) if initial_mail_sent else 0 }}%
+                    </p>
+                    <p class="text-secondary small"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mt-3 flex-grow-1">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 p-2 h-100">
+                <h6 class="text-center text-dark fw-bold">Mail Status Distribution</h6>
+                <canvas id="mailPieChart" style="max-height: 230px;"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 p-2 h-100">
+                <h6 class="text-center text-dark fw-bold">Client Engagement</h6>
+                <canvas id="mailBarChart" style="max-height: 230px;"></canvas>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    /* Card Hover Effect */
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+</style>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Counter Animation for Cards
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+        const target = +counter.getAttribute('data-target');
+        let count = 0;
+        const step = target / 60; // adjust speed
+
+        function updateCounter() {
+            count += step;
+            if (count < target) {
+                counter.textContent = Math.floor(count);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.textContent = target;
+            }
+        }
+        updateCounter();
+    });
+
+    // Pie Chart
+    const mailPieChart = new Chart(document.getElementById('mailPieChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Initial Mail Sent', 'Replies Received', 'Not Contacted'],
+            datasets: [{
+                data: [
+                    {{ initial_mail_sent }},
+                    {{ received_mail }},
+                    {{ total_clients - initial_mail_sent }}
+                ],
+                backgroundColor: ['#198754', '#ffc107', '#0d6efd'],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 12, weight: 'bold' },
+                        color: '#333'
+                    }
+                }
+            }
+        }
+    });
+
+    // Bar Chart
+    const mailBarChart = new Chart(document.getElementById('mailBarChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Total Clients', 'Initial Mail Sent', 'Replies Received'],
+            datasets: [{
+                label: 'Count',
+                data: [{{ total_clients }}, {{ initial_mail_sent }}, {{ received_mail }}],
+                backgroundColor: ['#0d6efd', '#198754', '#ffc107'],
+                borderRadius: 8,
+                barPercentage: 0.4,
+                categoryPercentage: 0.6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1200,
+                easing: 'easeOutBounce'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#343a40',
+                    titleColor: '#fff',
+                    bodyColor: '#f8f9fa',
+                    borderWidth: 1,
+                    borderColor: '#6c757d'
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#495057', font: { size: 12, weight: 'bold' } },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#495057', font: { size: 12, weight: 'bold' } },
+                    grid: { color: '#e9ecef' }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

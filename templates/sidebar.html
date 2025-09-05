@@ -1,0 +1,26 @@
+<nav id="sidebarMenu" class="sidebar d-flex flex-column p-3 bg-white shadow-lg rounded-3 min-vh-100 position-fixed"
+  style="width: 220px; top: 69px";>
+    <h5 class="text-center text-primary mb-4">Menu</h5>
+    <ul class="nav flex-column gap-2">
+        <li class="nav-item">
+            <a class="btn btn-outline-primary w-100 text-start" href="{{ url_for('dashboard.dashboard') }}">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-outline-primary w-100 text-start" href="{{ url_for('client.client_management') }}">
+                <i class="bi bi-people me-2"></i> Client
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-outline-primary w-100 text-start" href="{{ url_for('email.email') }}">
+                <i class="bi bi-envelope me-2"></i> Email
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-outline-primary w-100 text-start" href="#">
+                <i class="bi bi-graph-up me-2"></i> Reports
+            </a>
+        </li>
+    </ul>
+</nav>
